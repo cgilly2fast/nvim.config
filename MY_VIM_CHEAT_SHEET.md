@@ -38,10 +38,12 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 
 ## Code (F12, hover, quick fix)
 
-- `gd` — go to definition
+- `gd` — go to definition; `ctrl+o` jumps back
 - `gr` — references
 - `gI` — implementation
-- `K` — hover docs
+- `K` — hover: type, docs, signature (no mouse hover; cursor on it)
+- `K` again — jump into the popup to scroll; `q` closes, moving closes too
+- `ctrl+s` — parameter hints while typing a call (insert mode)
 - `Space c a` — code action / quick fix
 - `Space e` — show error under cursor
 - `]d` / `[d` — next / previous error
