@@ -219,10 +219,25 @@ vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right win
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
-vim.keymap.set({ "n", "t" }, "<C-S-Up>", "<cmd>resize +3<cr>", { desc = "Taller window" })
-vim.keymap.set({ "n", "t" }, "<C-S-Down>", "<cmd>resize -3<cr>", { desc = "Shorter window" })
-vim.keymap.set({ "n", "t" }, "<C-S-Right>", "<cmd>vertical resize +5<cr>", { desc = "Wider window" })
-vim.keymap.set({ "n", "t" }, "<C-S-Left>", "<cmd>vertical resize -5<cr>", { desc = "Narrower window" })
+local function moveDivider(direction)
+	local horizontal = direction == "h" or direction == "l"
+	local hasNeighbor = vim.fn.winnr(horizontal and "l" or "j") ~= vim.fn.winnr()
+	local grow = (direction == "l" or direction == "j") == hasNeighbor
+	vim.cmd((horizontal and "vertical resize " or "resize ") .. (grow and "+" or "-") .. (horizontal and 5 or 3))
+end
+
+vim.keymap.set({ "n", "t" }, "<M-h>", function()
+	moveDivider("h")
+end, { desc = "Move divider left" })
+vim.keymap.set({ "n", "t" }, "<M-j>", function()
+	moveDivider("j")
+end, { desc = "Move divider down" })
+vim.keymap.set({ "n", "t" }, "<M-k>", function()
+	moveDivider("k")
+end, { desc = "Move divider up" })
+vim.keymap.set({ "n", "t" }, "<M-l>", function()
+	moveDivider("l")
+end, { desc = "Move divider right" })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
