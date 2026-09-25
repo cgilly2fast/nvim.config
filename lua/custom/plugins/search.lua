@@ -1,3 +1,8 @@
+local function projectPaths()
+	local dirs = require("custom.search_dirs").all()
+	return dirs and table.concat(dirs, " ")
+end
+
 return {
 	"MagicDuck/grug-far.nvim",
 	cmd = "GrugFar",
@@ -5,14 +10,14 @@ return {
 		{
 			"<leader>S",
 			function()
-				require("grug-far").open()
+				require("grug-far").open({ prefills = { paths = projectPaths() } })
 			end,
 			desc = "[S]earch & replace in project",
 		},
 		{
 			"<leader>S",
 			function()
-				require("grug-far").with_visual_selection()
+				require("grug-far").with_visual_selection({ prefills = { paths = projectPaths() } })
 			end,
 			mode = "x",
 			desc = "[S]earch & replace selection in project",

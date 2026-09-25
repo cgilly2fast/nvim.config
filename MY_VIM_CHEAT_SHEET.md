@@ -25,6 +25,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `Space /` — search in this file
 - `Space s r` — reopen last search
 - `/text` then `n` / `N` — search in file, next / previous
+- Searches include dotfiles and `.idea`, skip `node_modules` and `.git`
 
 ## Replace (cmd+shift+h)
 
@@ -86,6 +87,11 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - Change inside quotes / parens → `ci"` / `ci(`
 - Wrap in quotes → `sa` + motion + `"` (e.g. `saiw"`)
 - Fold (cmd+k 0) → `za` toggle, `zc` close, `zo` open, `zR` open all
+
+## Markdown
+
+- Renders formatted automatically; raw while typing in insert mode
+- `Space m` — toggle formatted / raw
 
 ## Files & windows
 
