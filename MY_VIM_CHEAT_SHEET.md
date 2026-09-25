@@ -54,7 +54,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `m` — move
 - `D` — delete
 - `c` / `x` / `p` — copy / cut / paste file
-- `H` — show hidden files
+- `H` — hide / show hidden files (shown by default)
 - `?` — all tree keys
 
 ## Git
