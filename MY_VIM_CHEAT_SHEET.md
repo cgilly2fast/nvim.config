@@ -11,6 +11,9 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `ctrl+shift+n` / `ctrl+shift+w` / `ctrl+o` — new / close / next terminal (in terminal)
 - `Esc Esc` — terminal into normal mode (scroll, copy output)
 - `ctrl+shift+g` — git changes + diffs; again to close
+- `ctrl+shift+↑/↓` — current window taller / shorter (works in terminal)
+- `ctrl+shift+→/←` — current window wider / narrower
+- `ctrl+w =` — make all windows equal; or drag dividers with mouse
 
 ## Find things (cmd+p, cmd+shift+f)
 
