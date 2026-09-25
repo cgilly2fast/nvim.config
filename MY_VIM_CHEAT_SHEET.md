@@ -62,10 +62,15 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 
 ## Git
 
-- `ctrl+shift+g` — changed files + side-by-side diff
-- `-` — stage / unstage file (in git view)
-- `S` / `U` — stage all / unstage all
-- `cc` — commit staged
+- `ctrl+shift+g` — changes view: file list + full-file side-by-side diff; again to close
+- `Enter` — open a file's diff (in the file list)
+- `Space b` — hide / show the file list
+- `]c` / `[c` — next / previous change; `]f` / `[f` — next / previous file
+- `-` — stage / unstage file; `S` / `U` — stage all / unstage all
+- `Space h s` / `Space h r` — stage / discard the change under cursor
+- `X` — discard all changes to a file (in the file list)
+- `cc` — commit staged (in the file list)
+- `t` — toggle side-by-side / inline; `g?` — every key in this view
 - `Space g s` — fugitive status (`=` inline diff, `s` stage)
 - `:Git push` / `:Git pull`
 
