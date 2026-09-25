@@ -25,5 +25,9 @@ return {
 			desc = "[R]eplace in this file",
 		},
 	},
-	opts = {},
+	opts = {
+		engines = {
+			ripgrep = { extraArgs = "--hidden --glob=!**/.git/*" },
+		},
+	},
 }
