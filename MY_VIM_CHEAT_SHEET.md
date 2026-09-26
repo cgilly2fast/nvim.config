@@ -103,7 +103,11 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 ## Files & windows
 
 - Save → `:w`; save all → `:wa`
-- Close file → `:bd`; quit → `:q`; quit all → `:qa`
+- Close file (cmd+w), keep layout → `Space b d`
+- Back to previous file → `ctrl+^`; open files → `Space Space`
+- Quit → `:q`; quit all → `:qa`
+- Files changed by AI/git reload on their own (within 1s)
+- Changed on disk + unsaved edits → prompt: `O` keep yours, `L` load disk
 - Split right / below → `:vsp` / `:sp`
 - Close split → `ctrl+w q`
 - Old file browser → `Space p v`

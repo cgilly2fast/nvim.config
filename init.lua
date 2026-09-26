@@ -239,6 +239,16 @@ vim.keymap.set({ "n", "t" }, "<M-l>", function()
 	moveDivider("l")
 end, { desc = "Move divider right" })
 
+vim.keymap.set("n", "<leader>bd", function()
+	require("mini.bufremove").delete()
+end, { desc = "[B]uffer [D]elete, keep layout" })
+
+vim.fn.timer_start(1000, function()
+	if vim.fn.mode() ~= "c" and vim.fn.getcmdwintype() == "" then
+		vim.cmd("checktime")
+	end
+end, { ["repeat"] = -1 })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -371,6 +381,7 @@ require("lazy").setup({
 
 			-- Document existing key chains
 			require("which-key").add({
+				{ "<leader>b", group = "[B]uffer" },
 				{ "<leader>c", group = "[C]ode" },
 				{ "<leader>d", group = "[D]ocument" },
 				{ "<leader>r", group = "[R]ename" },
@@ -891,6 +902,8 @@ require("lazy").setup({
 			-- - sd'   - [S]urround [D]elete [']quotes
 			-- - sr)'  - [S]urround [R]eplace [)] [']
 			require("mini.surround").setup()
+
+			require("mini.bufremove").setup()
 
 			-- Simple and easy statusline.
 			--  You could remove this setup call if you don't like it,
