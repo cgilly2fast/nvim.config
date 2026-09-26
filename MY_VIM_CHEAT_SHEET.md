@@ -82,7 +82,8 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - Top / bottom of file → `gg` / `G`
 - Select → `v` chars, `V` lines, `ctrl+v` block
 - Select all → `ggVG`
-- Copy / paste → `y` / `p` (system clipboard)
+- Copy / paste → `y` / `p` (system clipboard), or select + `cmd+c` / `cmd+v`
+- Copy opencode output → drag-select it, `cmd+c`
 - Copy line / cut line → `yy` / `dd`
 - Paste over selection, keep clipboard → `Space p`
 - Undo / redo → `u` / `ctrl+r`

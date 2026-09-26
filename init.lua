@@ -239,6 +239,8 @@ vim.keymap.set({ "n", "t" }, "<M-l>", function()
 	moveDivider("l")
 end, { desc = "Move divider right" })
 
+vim.keymap.set("x", "<D-c>", '"+y', { desc = "Copy selection to clipboard" })
+
 vim.keymap.set("n", "<leader>bd", function()
 	require("mini.bufremove").delete()
 end, { desc = "[B]uffer [D]elete, keep layout" })
