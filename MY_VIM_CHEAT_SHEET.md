@@ -69,10 +69,11 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `-` — stage / unstage file; `S` / `U` — stage all / unstage all
 - `Space h s` / `Space h r` — stage / discard the change under cursor
 - `X` — discard all changes to a file (in the file list)
-- `cc` — commit staged (in the file list)
+- `c` — commit box for staged files: type message, `Enter` commits, `Esc` cancels (in the file list; `Space g c` anywhere)
+- `P` — push (in the file list; `Space g p` anywhere)
 - `t` — toggle side-by-side / inline; `g?` — every key in this view
 - `Space g s` — fugitive status (`=` inline diff, `s` stage)
-- `:Git push` / `:Git pull`
+- `:Git pull`
 
 ## Merge / rebase conflicts
 
@@ -82,7 +83,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 4. It jumps to the next conflict itself; `]x` / `[x` to move manually
 5. Capital (`Space c B`) — every conflict in the file at once
 6. Bottom title says "all conflicts resolved" → `:w`, `ctrl+h`, `-` on the file; next opens
-7. All resolved → terminal: `git rebase --continue` (`--abort` to bail)
+7. All resolved → `c` in the file list, `Enter` continues the rebase (terminal `git rebase --abort` to bail)
 
 ## Mouse habits → keys
 

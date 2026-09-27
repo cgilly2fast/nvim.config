@@ -194,6 +194,123 @@ local function focusMergeResultWhenReady(attempt)
 	end, 100)
 end
 
+local function gitRoot()
+	local root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
+	return vim.v.shell_error == 0 and root or nil
+end
+
+local function refreshSourceControl()
+	if package.loaded["codediff.ui.refresh"] then
+		require("codediff.ui.refresh").request(vim.api.nvim_get_current_tabpage(), { full = true })
+	end
+end
+
+local function runGit(root, args, done)
+	local command = vim.list_extend({ "git", "-C", root }, args)
+	vim.system(command, { text = true, env = { GIT_EDITOR = "true", GIT_TERMINAL_PROMPT = "0" } }, function(result)
+		vim.schedule(function()
+			done(result)
+		end)
+	end)
+end
+
+local function reportFailure(title, result)
+	local output = vim.trim((result.stdout or "") .. "\n" .. (result.stderr or ""))
+	vim.notify(title .. " failed:\n" .. output, vim.log.levels.ERROR)
+end
+
+local function openCommitBox(title, message, onSubmit)
+	local input = require("nui.input")({
+		relative = "editor",
+		position = { row = 2, col = "50%" },
+		size = { width = math.min(90, vim.o.columns - 4) },
+		border = {
+			style = "rounded",
+			text = { top = " " .. title .. " ", bottom = " Enter to commit · Esc to cancel ", bottom_align = "right" },
+		},
+	}, {
+		default_value = message,
+		on_submit = function(value)
+			value = vim.trim(value)
+			if value == "" then
+				return vim.notify("Commit message is empty, nothing committed", vim.log.levels.WARN)
+			end
+			onSubmit(value)
+		end,
+	})
+	input:mount()
+	for _, mode in ipairs({ "i", "n" }) do
+		input:map(mode, "<Esc>", function()
+			input:unmount()
+		end)
+	end
+end
+
+local function continueRebase(root)
+	runGit(root, { "rebase", "--continue" }, function(result)
+		refreshSourceControl()
+		if result.code ~= 0 then
+			return reportFailure("Rebase continue", result)
+		end
+		vim.notify(isRebasing(root) and "Next commit has conflicts: resolve them, then commit again" or "Rebase finished")
+	end)
+end
+
+local function commit()
+	local root = gitRoot()
+	if not root then
+		return vim.notify("Not in a git repository", vim.log.levels.WARN)
+	end
+	local staged = vim.fn.systemlist({ "git", "-C", root, "diff", "--cached", "--name-only" })
+	if isRebasing(root) then
+		local gitDir = vim.fn.systemlist({ "git", "-C", root, "rev-parse", "--absolute-git-dir" })[1]
+		local messageFile = gitDir .. "/rebase-merge/message"
+		local original = vim.fn.filereadable(messageFile) == 1 and vim.fn.readfile(messageFile)[1] or ""
+		return openCommitBox("Continue rebase", original, function(message)
+			if message == original or #staged == 0 then
+				return continueRebase(root)
+			end
+			runGit(root, { "commit", "-m", message }, function(result)
+				if result.code ~= 0 then
+					return reportFailure("Commit", result)
+				end
+				continueRebase(root)
+			end)
+		end)
+	end
+	if #staged == 0 then
+		return vim.notify("Nothing staged: press - on a file (S for all), then commit", vim.log.levels.WARN)
+	end
+	local title = "Commit " .. #staged .. (#staged == 1 and " staged file" or " staged files")
+	openCommitBox(title, "", function(message)
+		runGit(root, { "commit", "-m", message }, function(result)
+			refreshSourceControl()
+			if result.code ~= 0 then
+				return reportFailure("Commit", result)
+			end
+			vim.notify(vim.split(result.stdout, "\n")[1])
+		end)
+	end)
+end
+
+local function push()
+	local root = gitRoot()
+	if not root then
+		return vim.notify("Not in a git repository", vim.log.levels.WARN)
+	end
+	local branch = vim.fn.systemlist({ "git", "-C", root, "branch", "--show-current" })[1]
+	vim.fn.system({ "git", "-C", root, "rev-parse", "--abbrev-ref", "@{upstream}" })
+	local args = vim.v.shell_error == 0 and { "push" } or { "push", "-u", "origin", "HEAD" }
+	vim.notify("Pushing " .. branch .. "…")
+	runGit(root, args, function(result)
+		refreshSourceControl()
+		if result.code ~= 0 then
+			return reportFailure("Push", result)
+		end
+		vim.notify("Pushed " .. branch)
+	end)
+end
+
 local function toggleSourceControl()
 	local lifecycle = require("codediff.ui.lifecycle")
 	local tabpage = vim.api.nvim_get_current_tabpage()
@@ -213,6 +330,8 @@ return {
 	end,
 	keys = {
 		{ "<C-S-g>", toggleSourceControl, mode = { "n", "t" }, desc = "Source control" },
+		{ "<leader>gc", commit, desc = "Git commit" },
+		{ "<leader>gp", push, desc = "Git push" },
 	},
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
@@ -242,7 +361,8 @@ return {
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "codediff-explorer",
 			callback = function(args)
-				vim.keymap.set("n", "cc", "<cmd>Git commit<cr>", { buffer = args.buf, desc = "Commit staged changes" })
+				vim.keymap.set("n", "c", commit, { buffer = args.buf, desc = "Commit staged changes" })
+				vim.keymap.set("n", "P", push, { buffer = args.buf, desc = "Push" })
 			end,
 		})
 	end,
