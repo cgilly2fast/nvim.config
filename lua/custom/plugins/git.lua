@@ -107,5 +107,5 @@ return {
 			end,
 		})
 	end,
-	opts = {},
+	opts = { explorer = { visible_groups = { conflicts = false } } },
 }
