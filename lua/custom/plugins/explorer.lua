@@ -1,9 +1,24 @@
+local function bufferFile()
+	local name = vim.api.nvim_buf_get_name(0)
+	if package.loaded["codediff.core.virtual_file"] then
+		local root, _, path = require("codediff.core.virtual_file").parse_url(name)
+		if path then
+			return vim.fs.joinpath(root, path)
+		end
+	end
+	if vim.bo.buftype ~= "" or name == "" then
+		return nil
+	end
+	return name
+end
+
 local function toggleExplorer()
 	if vim.bo.filetype == "neo-tree" then
-		vim.cmd("Neotree close")
-	else
-		vim.cmd("Neotree reveal")
+		return vim.cmd("Neotree close")
 	end
+	local file = bufferFile()
+	local revealable = file and vim.uv.fs_stat(file) and vim.fs.relpath(vim.fn.getcwd(), file)
+	require("neo-tree.command").execute({ action = "focus", reveal_file = revealable and file or nil })
 end
 
 local function projectPath(absolute)
@@ -39,17 +54,8 @@ local function pathsUnderCursor()
 			return relative and vim.fs.joinpath(root, relative)
 		end)
 	end
-	local name = vim.api.nvim_buf_get_name(0)
-	if package.loaded["codediff.core.virtual_file"] then
-		local root, _, path = require("codediff.core.virtual_file").parse_url(name)
-		if path then
-			return { projectPath(vim.fs.joinpath(root, path)) }
-		end
-	end
-	if vim.bo.buftype ~= "" or name == "" then
-		return {}
-	end
-	return { projectPath(name) }
+	local file = bufferFile()
+	return file and { projectPath(file) } or {}
 end
 
 local function copyPaths()
