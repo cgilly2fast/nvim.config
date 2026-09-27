@@ -58,6 +58,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `D` — delete
 - `c` / `x` / `p` — copy / cut / paste file
 - `H` — hide / show hidden files (shown by default)
+- `option+cmd+c` — copy the file's path from the project root; `V` + `j`/`k` first to copy several
 - `?` — all tree keys
 
 ## Git

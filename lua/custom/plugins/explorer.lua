@@ -6,6 +6,48 @@ local function toggleExplorer()
 	end
 end
 
+local function projectPath(absolute)
+	return vim.fs.relpath(vim.fn.getcwd(), absolute) or absolute
+end
+
+local function pathsUnderCursor()
+	if vim.bo.filetype == "neo-tree" then
+		local tree = require("neo-tree.sources.manager").get_state_for_window().tree
+		local first, last = vim.fn.line("v"), vim.fn.line(".")
+		local paths = {}
+		for line = math.min(first, last), math.max(first, last) do
+			local node = tree:get_node(line)
+			if node and node.path then
+				table.insert(paths, projectPath(node.path))
+			end
+		end
+		return paths
+	end
+	local name = vim.api.nvim_buf_get_name(0)
+	if package.loaded["codediff.core.virtual_file"] then
+		local root, _, path = require("codediff.core.virtual_file").parse_url(name)
+		if path then
+			return { projectPath(vim.fs.joinpath(root, path)) }
+		end
+	end
+	if vim.bo.buftype ~= "" or name == "" then
+		return {}
+	end
+	return { projectPath(name) }
+end
+
+local function copyPaths()
+	local paths = pathsUnderCursor()
+	if vim.fn.mode():match("^[vV\22]") then
+		vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "n", false)
+	end
+	if #paths == 0 then
+		return vim.notify("No file path here", vim.log.levels.WARN)
+	end
+	vim.fn.setreg("+", table.concat(paths, "\n"))
+	vim.notify(#paths == 1 and "Copied " .. paths[1] or "Copied " .. #paths .. " paths")
+end
+
 return {
 	{
 		"nvim-neo-tree/neo-tree.nvim",
@@ -18,6 +60,7 @@ return {
 		},
 		keys = {
 			{ "<C-e>", toggleExplorer, mode = { "n", "t" }, desc = "File explorer" },
+			{ "<M-D-c>", copyPaths, mode = { "n", "x" }, desc = "Copy path" },
 		},
 		init = function()
 			vim.api.nvim_create_autocmd("VimEnter", {
