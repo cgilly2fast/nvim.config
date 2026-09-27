@@ -52,6 +52,80 @@ local function labelPanes()
 	end
 end
 
+local function nearestConflict(session)
+	local tracking = require("codediff.ui.conflict.tracking")
+	local cursorLine = vim.api.nvim_win_get_cursor(0)[1]
+	local nearest, nearestDistance
+	for _, block in ipairs(session.conflict_blocks) do
+		local start = tracking.is_block_active(session, block) and tracking.get_block_start_line(session, block, session.result_bufnr)
+		if start and (not nearest or math.abs(start - cursorLine) < nearestDistance) then
+			nearest, nearestDistance = block, math.abs(start - cursorLine)
+		end
+	end
+	return nearest
+end
+
+local function mergeSession()
+	local session = require("codediff.ui.lifecycle").get_session(vim.api.nvim_get_current_tabpage())
+	if session and session.conflict_blocks and vim.api.nvim_get_current_buf() == session.result_bufnr then
+		return session
+	end
+end
+
+local function inputWindows(session)
+	local windows = {}
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		if buf == session.original_bufnr then
+			windows.original = win
+		elseif buf == session.modified_bufnr then
+			windows.modified = win
+		end
+	end
+	return windows
+end
+
+local function alignInputsToConflict()
+	local session = mergeSession()
+	local block = session and nearestConflict(session)
+	if not block then
+		return
+	end
+	vim.wo.scrollbind = false
+	local windows = inputWindows(session)
+	for side, range in pairs({ original = block.output1_range, modified = block.output2_range }) do
+		if windows[side] and range then
+			vim.api.nvim_win_call(windows[side], function()
+				vim.api.nvim_win_set_cursor(0, { math.max(range.start_line, 1), 0 })
+				vim.cmd("normal! zz")
+			end)
+		end
+	end
+end
+
+local function resolveNearestConflict(action)
+	local session = mergeSession()
+	local block = session and nearestConflict(session)
+	if not block then
+		return vim.notify("No unresolved conflict in this file", vim.log.levels.INFO)
+	end
+	local resultWin = vim.api.nvim_get_current_win()
+	local windows = inputWindows(session)
+	for side, range in pairs({ original = block.output1_range, modified = block.output2_range }) do
+		if windows[side] and range and range.end_line > range.start_line then
+			vim.api.nvim_set_current_win(windows[side])
+			vim.api.nvim_win_set_cursor(0, { range.start_line, 0 })
+			require("codediff.ui.conflict")[action](vim.api.nvim_get_current_tabpage())
+			vim.api.nvim_set_current_win(resultWin)
+			if nearestConflict(session) then
+				require("codediff.ui.conflict.navigation").navigate_next_conflict(vim.api.nvim_get_current_tabpage())
+				alignInputsToConflict()
+			end
+			return
+		end
+	end
+end
+
 local function focusMergeResult()
 	local tabpage = vim.api.nvim_get_current_tabpage()
 	local session = require("codediff.ui.lifecycle").get_session(tabpage)
@@ -61,9 +135,15 @@ local function focusMergeResult()
 	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
 		if vim.api.nvim_win_get_buf(win) == session.result_bufnr then
 			vim.b[session.result_bufnr].mergeFocused = true
+			for keys, action in pairs({ co = "accept_current", ct = "accept_incoming", cb = "accept_both", cx = "discard" }) do
+				vim.keymap.set("n", "<leader>" .. keys, function()
+					resolveNearestConflict(action)
+				end, { buffer = session.result_bufnr, desc = action:gsub("_", " ") })
+			end
 			vim.api.nvim_set_current_win(win)
 			vim.api.nvim_win_set_cursor(win, { 1, 0 })
 			require("codediff.ui.conflict.navigation").navigate_next_conflict(tabpage)
+			alignInputsToConflict()
 			return
 		end
 	end
@@ -131,6 +211,9 @@ return {
 				vim.schedule(labelPanes)
 				vim.defer_fn(focusMergeResult, 100)
 			end,
+		})
+		vim.api.nvim_create_autocmd("CursorMoved", {
+			callback = alignInputsToConflict,
 		})
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "codediff-explorer",

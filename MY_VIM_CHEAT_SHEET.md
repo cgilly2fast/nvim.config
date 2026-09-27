@@ -76,16 +76,13 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 
 ## Merge / rebase conflicts
 
-1. `ctrl+shift+g` — conflicted files are under "Merge Changes"; the first one opens
-2. Cursor lands in the bottom RESULT pane, on the first conflict
-3. `Space c o` / `Space c t` / `Space c b` — keep current / incoming / both
-4. Capital (`Space c B`) — do it for every conflict in the file; `]x` next conflict
-5. `:w` — saves RESULT (works from any pane)
-6. `ctrl+h` to the file list, `-` on the file — marks it resolved
-7. `Enter` on the next conflicted file, repeat
-8. Terminal: `git rebase --continue`; `git rebase --abort` bails out
-- Rebase: current = v2 (top right), incoming = your commit (top left)
-- File opened normally shows conflicts inline: `co` / `ct` / `cb`, `]x` next
+1. `ctrl+shift+g` — first conflicted file opens; all 3 panes line up on conflict 1
+2. Top left = your commit, top right = v2 (rebase); bottom = the file you save
+3. Stay in the bottom pane: `Space c b` both, `Space c o` v2, `Space c t` yours
+4. It jumps to the next conflict itself; `]x` / `[x` to move manually
+5. Capital (`Space c B`) — every conflict in the file at once
+6. `:w`, then `ctrl+h` to the file list, `-` on the file — next file opens
+7. All resolved → terminal: `git rebase --continue` (`--abort` to bail)
 
 ## Mouse habits → keys
 
