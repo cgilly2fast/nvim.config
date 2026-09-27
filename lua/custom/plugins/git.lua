@@ -25,7 +25,13 @@ local function paneLabel(buf, session, rebasing)
 	if vim.bo[buf].buftype == "" and name ~= "" then
 		local relative = vim.fn.fnamemodify(name, ":.")
 		if buf == session.result_bufnr then
-			return " " .. relative .. "  (RESULT: edit here, :w saves)"
+			local tracking = require("codediff.ui.conflict.tracking")
+			local remaining = #vim.tbl_filter(function(block)
+				return tracking.is_block_active(session, block)
+			end, session.conflict_blocks or {})
+			local status = remaining == 0 and "all conflicts resolved: :w, then - on the file in the list"
+				or remaining .. (remaining == 1 and " conflict" or " conflicts") .. " left"
+			return " " .. relative .. "  RESULT (" .. status .. ")"
 		end
 		return " " .. relative .. "  (working tree)"
 	end
@@ -129,12 +135,15 @@ end
 local function focusMergeResult()
 	local tabpage = vim.api.nvim_get_current_tabpage()
 	local session = require("codediff.ui.lifecycle").get_session(tabpage)
-	if not (session and session.result_bufnr and session.conflict_blocks) or vim.b[session.result_bufnr].mergeFocused then
-		return
+	if not (session and session.result_bufnr and session.conflict_blocks) then
+		return false
+	end
+	if session.focusedResult == session.result_bufnr then
+		return true
 	end
 	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
 		if vim.api.nvim_win_get_buf(win) == session.result_bufnr then
-			vim.b[session.result_bufnr].mergeFocused = true
+			session.focusedResult = session.result_bufnr
 			for keys, action in pairs({ co = "accept_current", ct = "accept_incoming", cb = "accept_both", cx = "discard" }) do
 				vim.keymap.set("n", "<leader>" .. keys, function()
 					resolveNearestConflict(action)
@@ -144,9 +153,10 @@ local function focusMergeResult()
 			vim.api.nvim_win_set_cursor(win, { 1, 0 })
 			require("codediff.ui.conflict.navigation").navigate_next_conflict(tabpage)
 			alignInputsToConflict()
-			return
+			return true
 		end
 	end
+	return false
 end
 
 local function tabLabel(tabpage)
@@ -173,6 +183,15 @@ function _G.TabLabels()
 		table.insert(parts, highlight .. "%" .. index .. "T " .. index .. " " .. tabLabel(tabpage) .. " ")
 	end
 	return table.concat(parts) .. "%#TabLineFill#%T"
+end
+
+local function focusMergeResultWhenReady(attempt)
+	if focusMergeResult() or attempt >= 30 then
+		return
+	end
+	vim.defer_fn(function()
+		focusMergeResultWhenReady(attempt + 1)
+	end, 100)
 end
 
 local function toggleSourceControl()
@@ -209,11 +228,16 @@ return {
 		vim.api.nvim_create_autocmd({ "BufWinEnter", "WinResized" }, {
 			callback = function()
 				vim.schedule(labelPanes)
-				vim.defer_fn(focusMergeResult, 100)
+				focusMergeResultWhenReady(0)
 			end,
 		})
 		vim.api.nvim_create_autocmd("CursorMoved", {
 			callback = alignInputsToConflict,
+		})
+		vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+			callback = function()
+				vim.schedule(labelPanes)
+			end,
 		})
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "codediff-explorer",

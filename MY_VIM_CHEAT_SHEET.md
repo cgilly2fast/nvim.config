@@ -81,7 +81,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 3. Stay in the bottom pane: `Space c b` both, `Space c o` v2, `Space c t` yours
 4. It jumps to the next conflict itself; `]x` / `[x` to move manually
 5. Capital (`Space c B`) — every conflict in the file at once
-6. `:w`, then `ctrl+h` to the file list, `-` on the file — next file opens
+6. Bottom title says "all conflicts resolved" → `:w`, `ctrl+h`, `-` on the file; next opens
 7. All resolved → terminal: `git rebase --continue` (`--abort` to bail)
 
 ## Mouse habits → keys
