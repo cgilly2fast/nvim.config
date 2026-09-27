@@ -10,18 +10,34 @@ local function projectPath(absolute)
 	return vim.fs.relpath(vim.fn.getcwd(), absolute) or absolute
 end
 
+local function selectedTreePaths(tree, nodePath)
+	local first, last = vim.fn.line("v"), vim.fn.line(".")
+	local paths, seen = {}, {}
+	for line = math.min(first, last), math.max(first, last) do
+		local node = tree:get_node(line)
+		local absolute = node and nodePath(node)
+		if absolute and not seen[absolute] then
+			seen[absolute] = true
+			table.insert(paths, projectPath(absolute))
+		end
+	end
+	return paths
+end
+
 local function pathsUnderCursor()
 	if vim.bo.filetype == "neo-tree" then
-		local tree = require("neo-tree.sources.manager").get_state_for_window().tree
-		local first, last = vim.fn.line("v"), vim.fn.line(".")
-		local paths = {}
-		for line = math.min(first, last), math.max(first, last) do
-			local node = tree:get_node(line)
-			if node and node.path then
-				table.insert(paths, projectPath(node.path))
-			end
-		end
-		return paths
+		return selectedTreePaths(require("neo-tree.sources.manager").get_state_for_window().tree, function(node)
+			return node.path
+		end)
+	end
+	if vim.bo.filetype == "codediff-explorer" then
+		local lifecycle = require("codediff.ui.lifecycle")
+		local tabpage = vim.api.nvim_get_current_tabpage()
+		local root = lifecycle.get_session(tabpage).git_root
+		return selectedTreePaths(lifecycle.get_panel_view(tabpage).tree, function(node)
+			local relative = node.data and (node.data.path or node.data.dir_path)
+			return relative and vim.fs.joinpath(root, relative)
+		end)
 	end
 	local name = vim.api.nvim_buf_get_name(0)
 	if package.loaded["codediff.core.virtual_file"] then
