@@ -39,9 +39,15 @@ local function labelPanes()
 	end
 	local rebasing = session.result_bufnr ~= nil and isRebasing(vim.fn.getcwd())
 	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
-		local label = paneLabel(vim.api.nvim_win_get_buf(win), session, rebasing)
+		local buf = vim.api.nvim_win_get_buf(win)
+		local label = paneLabel(buf, session, rebasing)
 		if label then
 			vim.wo[win].winbar = label
+		end
+		if session.result_bufnr and buf ~= session.result_bufnr and vim.bo[buf].buftype ~= "" then
+			vim.api.nvim_buf_call(buf, function()
+				vim.cmd.cnoreabbrev("<buffer>", "<expr>", "w", [[getcmdtype() == ':' && getcmdline() ==# 'w' ? 'WriteMergeResult' : 'w']])
+			end)
 		end
 	end
 end
@@ -94,6 +100,15 @@ return {
 	},
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
+		vim.api.nvim_create_user_command("WriteMergeResult", function()
+			local session = require("codediff.ui.lifecycle").get_session(vim.api.nvim_get_current_tabpage())
+			if not (session and session.result_bufnr) then
+				return vim.notify("No merge result pane in this tab", vim.log.levels.WARN)
+			end
+			vim.api.nvim_buf_call(session.result_bufnr, function()
+				vim.cmd("write")
+			end)
+		end, { desc = "Save the merge RESULT pane from any pane" })
 		vim.api.nvim_create_autocmd({ "BufWinEnter", "WinResized" }, {
 			callback = function()
 				vim.schedule(labelPanes)

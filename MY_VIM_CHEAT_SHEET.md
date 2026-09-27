@@ -82,7 +82,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `]x` / `[x` — next / previous conflict
 - `Space c o` / `Space c t` / `Space c b` — keep top-right / top-left / both
 - Capital letter (`Space c B`) — same, for every conflict in the file
-- `ctrl+j` into RESULT, fix by hand if needed, `:w`
+- Changes land in the bottom RESULT pane only; `:w` saves it from any pane
 - `-` on the file in the list — stage it (marks resolved)
 - `schema.graphql` — generated; `git checkout --ours schema.graphql`, start the API, `git add` it
 - Then `git rebase --continue` in the terminal; `git rebase --abort` to bail
