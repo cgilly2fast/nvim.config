@@ -76,16 +76,14 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 
 ## Merge / rebase conflicts
 
-- `ctrl+shift+g` — conflicted files sit under "Merge Changes"; `Enter` opens one
-- Top two panes are read-only; bottom "RESULT" pane is the file you save
-- Rebase: "branch you are rebasing onto" = v2, "your commit" = your work
-- `]x` / `[x` — next / previous conflict
-- `Space c o` / `Space c t` / `Space c b` — keep top-right / top-left / both
-- Capital letter (`Space c B`) — same, for every conflict in the file
-- Changes land in the bottom RESULT pane only; `:w` saves it from any pane
-- `-` on the file in the list — stage it (marks resolved)
-- `schema.graphql` — generated; `git checkout --ours schema.graphql`, start the API, `git add` it
-- Then `git rebase --continue` in the terminal; `git rebase --abort` to bail
+1. `Space g x` — list every conflict; `Enter` jumps to one
+2. Pick per conflict: `co` current, `ct` incoming, `cb` both, `c0` neither
+3. Rebase: current = v2, incoming = your commit
+4. `]x` / `[x` — next / previous conflict in the file; `Space g x` again for the rest
+5. `:wa` — save all
+6. Terminal: `git add -u && git rebase --continue`; repeat if it stops again
+- Bail out → `git rebase --abort`
+- `schema.graphql` → just `cb`; the API rewrites it on start
 
 ## Mouse habits → keys
 
