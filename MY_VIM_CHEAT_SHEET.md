@@ -74,6 +74,19 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `Space g s` — fugitive status (`=` inline diff, `s` stage)
 - `:Git push` / `:Git pull`
 
+## Merge / rebase conflicts
+
+- `ctrl+shift+g` — conflicted files sit under "Merge Changes"; `Enter` opens one
+- Top two panes are read-only; bottom "RESULT" pane is the file you save
+- Rebase: "branch you are rebasing onto" = v2, "your commit" = your work
+- `]x` / `[x` — next / previous conflict
+- `Space c o` / `Space c t` / `Space c b` — keep top-right / top-left / both
+- Capital letter (`Space c B`) — same, for every conflict in the file
+- `ctrl+j` into RESULT, fix by hand if needed, `:w`
+- `-` on the file in the list — stage it (marks resolved)
+- `schema.graphql` — generated; `git checkout --ours schema.graphql`, start the API, `git add` it
+- Then `git rebase --continue` in the terminal; `git rebase --abort` to bail
+
 ## Mouse habits → keys
 
 - Click a line → `42G` or `:42`, or just click (mouse works)
