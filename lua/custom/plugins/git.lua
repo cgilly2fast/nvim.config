@@ -44,6 +44,28 @@ local function labelPanes()
 		if label then
 			vim.wo[win].winbar = label
 		end
+		if session.result_bufnr and buf ~= session.result_bufnr and vim.bo[buf].buftype ~= "" then
+			vim.api.nvim_buf_call(buf, function()
+				vim.cmd.cnoreabbrev("<buffer>", "<expr>", "w", [[getcmdtype() == ':' && getcmdline() ==# 'w' ? 'WriteMergeResult' : 'w']])
+			end)
+		end
+	end
+end
+
+local function focusMergeResult()
+	local tabpage = vim.api.nvim_get_current_tabpage()
+	local session = require("codediff.ui.lifecycle").get_session(tabpage)
+	if not (session and session.result_bufnr and session.conflict_blocks) or vim.b[session.result_bufnr].mergeFocused then
+		return
+	end
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
+		if vim.api.nvim_win_get_buf(win) == session.result_bufnr then
+			vim.b[session.result_bufnr].mergeFocused = true
+			vim.api.nvim_set_current_win(win)
+			vim.api.nvim_win_set_cursor(win, { 1, 0 })
+			require("codediff.ui.conflict.navigation").navigate_next_conflict(tabpage)
+			return
+		end
 	end
 end
 
@@ -95,9 +117,19 @@ return {
 	},
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
+		vim.api.nvim_create_user_command("WriteMergeResult", function()
+			local session = require("codediff.ui.lifecycle").get_session(vim.api.nvim_get_current_tabpage())
+			if not (session and session.result_bufnr) then
+				return vim.notify("No merge result pane in this tab", vim.log.levels.WARN)
+			end
+			vim.api.nvim_buf_call(session.result_bufnr, function()
+				vim.cmd("write")
+			end)
+		end, {})
 		vim.api.nvim_create_autocmd({ "BufWinEnter", "WinResized" }, {
 			callback = function()
 				vim.schedule(labelPanes)
+				vim.defer_fn(focusMergeResult, 100)
 			end,
 		})
 		vim.api.nvim_create_autocmd("FileType", {
@@ -107,5 +139,5 @@ return {
 			end,
 		})
 	end,
-	opts = { explorer = { visible_groups = { conflicts = false } } },
+	opts = {},
 }

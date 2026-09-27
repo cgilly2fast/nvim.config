@@ -76,14 +76,16 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 
 ## Merge / rebase conflicts
 
-1. `Space g x` — list every conflict; `Enter` jumps to one
-2. Pick per conflict: `co` current, `ct` incoming, `cb` both, `c0` neither
-3. Rebase: current = v2, incoming = your commit
-4. `]x` / `[x` — next / previous conflict in the file; `Space g x` again for the rest
-5. `:wa` — save all
-6. Terminal: `git add -u && git rebase --continue`; repeat if it stops again
-- Bail out → `git rebase --abort`
-- `schema.graphql` → just `cb`; the API rewrites it on start
+1. `ctrl+shift+g` — conflicted files are under "Merge Changes"; the first one opens
+2. Cursor lands in the bottom RESULT pane, on the first conflict
+3. `Space c o` / `Space c t` / `Space c b` — keep current / incoming / both
+4. Capital (`Space c B`) — do it for every conflict in the file; `]x` next conflict
+5. `:w` — saves RESULT (works from any pane)
+6. `ctrl+h` to the file list, `-` on the file — marks it resolved
+7. `Enter` on the next conflicted file, repeat
+8. Terminal: `git rebase --continue`; `git rebase --abort` bails out
+- Rebase: current = v2 (top right), incoming = your commit (top left)
+- File opened normally shows conflicts inline: `co` / `ct` / `cb`, `]x` next
 
 ## Mouse habits → keys
 
