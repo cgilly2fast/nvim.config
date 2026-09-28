@@ -116,6 +116,15 @@ return {
 		persist_mode = false,
 	},
 	init = function()
+		local paste = vim.paste
+		vim.paste = function(lines, phase)
+			if vim.bo.buftype ~= "terminal" or vim.api.nvim_get_mode().mode == "t" then
+				return paste(lines, phase)
+			end
+			vim.cmd("normal! " .. vim.keycode("<Esc>"))
+			vim.cmd.startinsert()
+			return paste(lines, phase)
+		end
 		vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
 			pattern = "term://*",
 			command = "startinsert",
