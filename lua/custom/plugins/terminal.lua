@@ -116,6 +116,14 @@ return {
 		persist_mode = false,
 	},
 	init = function()
+		vim.api.nvim_create_autocmd("TermRequest", {
+			callback = function(event)
+				local payload = event.data.sequence:match("^\27%]52;[^;]*;(.+)$")
+				if payload and payload ~= "?" then
+					vim.fn.setreg("+", vim.base64.decode(payload))
+				end
+			end,
+		})
 		local paste = vim.paste
 		vim.paste = function(lines, phase)
 			if vim.bo.buftype ~= "terminal" or vim.api.nvim_get_mode().mode == "t" then
