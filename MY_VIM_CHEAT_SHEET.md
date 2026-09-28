@@ -5,7 +5,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 ## Layout (the VS Code stuff)
 
 - `ctrl+h/j/k/l` — move between tree, editor, terminal
-- `ctrl+e` — open/close file tree
+- `ctrl+e` — open/close file tree; `Space b` — show/hide it without moving the cursor (same key as the git view)
 - `ctrl+shift+j` — open terminal panel; again (inside it) hides it
 - Terminal ignoring your typing? Bottom-left says NORMAL instead of TERMINAL: press `i` to type again
 - `ctrl+shift+k` — terminal → editor, panel stays open

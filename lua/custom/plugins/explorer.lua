@@ -82,6 +82,7 @@ return {
 		},
 		keys = {
 			{ "<C-e>", toggleExplorer, mode = { "n", "t" }, desc = "File explorer" },
+			{ "<leader>b", "<cmd>Neotree toggle show<cr>", desc = "Show / hide file explorer" },
 			{ "<M-D-c>", copyPaths, mode = { "n", "x" }, desc = "Copy path" },
 		},
 		init = function()
