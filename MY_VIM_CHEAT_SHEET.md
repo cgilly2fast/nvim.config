@@ -64,6 +64,8 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 ## Git
 
 - `ctrl+shift+g` — changes view: file list + full-file side-by-side diff; again to close
+- `gd` in the diff (right pane) — opens the definition in the editor tab; `ctrl+o` walks back, all the way to the diff
+- `ctrl+shift+g` from the editor — back to the open diff
 - Right-edge scrollbar marks every change in the file (green new, red old, yellow unresolved conflict), plus errors and search hits
 - `Enter` — open a file's diff (in the file list)
 - `Space b` — hide / show the file list

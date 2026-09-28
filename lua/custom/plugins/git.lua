@@ -50,6 +50,11 @@ local function labelPanes()
 		if label then
 			vim.wo[win].winbar = label
 		end
+		if vim.bo[buf].buftype ~= "" and vim.api.nvim_buf_get_name(buf):match("^codediff:") then
+			vim.keymap.set("n", "gd", function()
+				vim.notify("This pane is a version from git, so it has no go-to-definition. Use gd in the working file's pane.")
+			end, { buffer = buf, desc = "Go to definition (not available here)" })
+		end
 		if session.result_bufnr and buf ~= session.result_bufnr and vim.bo[buf].buftype ~= "" then
 			vim.api.nvim_buf_call(buf, function()
 				vim.cmd.cnoreabbrev("<buffer>", "<expr>", "w", [[getcmdtype() == ':' && getcmdline() ==# 'w' ? 'WriteMergeResult' : 'w']])
@@ -315,10 +320,14 @@ local function toggleSourceControl()
 	local lifecycle = require("codediff.ui.lifecycle")
 	local tabpage = vim.api.nvim_get_current_tabpage()
 	if lifecycle.get_session(tabpage) then
-		lifecycle.close(tabpage)
-	else
-		vim.cmd("CodeDiff")
+		return lifecycle.close(tabpage)
 	end
+	for _, other in ipairs(vim.api.nvim_list_tabpages()) do
+		if lifecycle.get_session(other) then
+			return vim.api.nvim_set_current_tabpage(other)
+		end
+	end
+	vim.cmd("CodeDiff")
 end
 
 return {
@@ -335,6 +344,9 @@ return {
 	},
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
+		vim.keymap.set("n", "<C-o>", function()
+			require("custom.diff_definition").jumpBack()
+		end, { desc = "Jump back (returns to the diff after gd)" })
 		vim.api.nvim_create_user_command("WriteMergeResult", function()
 			local session = require("codediff.ui.lifecycle").get_session(vim.api.nvim_get_current_tabpage())
 			if not (session and session.result_bufnr) then
