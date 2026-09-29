@@ -317,6 +317,20 @@ local function push()
 	end)
 end
 
+local function openSourceControl()
+	local root = gitRoot()
+	if not root or vim.fn.systemlist({ "git", "-C", root, "status", "--porcelain" })[1] then
+		return vim.cmd("CodeDiff")
+	end
+	local path = require("codediff.core.path")
+	require("codediff.ui.view").create({
+		panel = { name = "explorer", data = { status_result = { unstaged = {}, staged = {}, conflicts = {} } } },
+		git_root = root,
+		original = path.empty(),
+		modified = path.empty(),
+	}, "")
+end
+
 local function toggleSourceControl()
 	local lifecycle = require("codediff.ui.lifecycle")
 	local tabpage = vim.api.nvim_get_current_tabpage()
@@ -329,7 +343,7 @@ local function toggleSourceControl()
 			return vim.api.nvim_set_current_tabpage(other)
 		end
 	end
-	vim.cmd("CodeDiff")
+	openSourceControl()
 end
 
 return {
