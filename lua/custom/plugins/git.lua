@@ -207,6 +207,7 @@ end
 local function refreshSourceControl()
 	if package.loaded["codediff.ui.refresh"] then
 		require("codediff.ui.refresh").request(vim.api.nvim_get_current_tabpage(), { full = true })
+		require("custom.git_graph").refresh()
 	end
 end
 
@@ -323,7 +324,8 @@ local function toggleSourceControl()
 		return lifecycle.close(tabpage)
 	end
 	for _, other in ipairs(vim.api.nvim_list_tabpages()) do
-		if lifecycle.get_session(other) then
+		local session = lifecycle.get_session(other)
+		if session and require("custom.git_graph").isWorkingTree(session) then
 			return vim.api.nvim_set_current_tabpage(other)
 		end
 	end
@@ -344,6 +346,7 @@ return {
 	},
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
+		require("custom.git_graph").setup()
 		vim.keymap.set("n", "<C-o>", function()
 			require("custom.diff_definition").jumpBack()
 		end, { desc = "Jump back (returns to the diff after gd)" })

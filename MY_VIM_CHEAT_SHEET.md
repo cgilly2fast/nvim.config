@@ -71,7 +71,8 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `ctrl+shift+g` from the editor — back to the open diff
 - Right-edge scrollbar marks every change in the file (green new, red old, yellow unresolved conflict), plus errors and search hits
 - `Enter` — open a file's diff (in the file list)
-- `Space b` — hide / show the file list
+- `Space b` — hide / show the file list (and the graph)
+- Graph under the file list: latest commits, green = your branches, blue = origin, `↑2 to push` / `↓1 to pull` at the top; `Enter` on a commit opens its changes (one commit tab at a time, `q` closes it)
 - `]c` / `[c` — next / previous change; `]f` / `[f` — next / previous file
 - `-` — stage / unstage file; `S` / `U` — stage all / unstage all
 - `Space h s` / `Space h r` — stage / discard the change under cursor
