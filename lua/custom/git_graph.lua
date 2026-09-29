@@ -2,6 +2,9 @@ local M = {}
 
 local namespace = vim.api.nvim_create_namespace("git_graph")
 local graphWindows = {}
+local function graphHeight()
+	return math.min(12, math.floor(vim.o.lines / 3))
+end
 local commitsOpenedFromGraph = {}
 
 local function git(root, args)
@@ -129,7 +132,7 @@ function M.sync(tabpage)
 		graphWindows[tabpage] = vim.api.nvim_open_win(createBuffer(), false, {
 			split = "below",
 			win = explorer,
-			height = math.min(12, math.floor(vim.o.lines / 3)),
+			height = graphHeight(),
 		})
 		local win = graphWindows[tabpage]
 		vim.wo[win].winfixheight = true
@@ -179,6 +182,14 @@ function M.setup()
 	vim.api.nvim_create_autocmd("User", { pattern = "CodeDiffOpen", callback = syncSoon })
 	vim.api.nvim_create_autocmd({ "WinClosed", "BufWinEnter", "TabClosed" }, { callback = syncSoon })
 	vim.api.nvim_create_autocmd({ "TabEnter", "FocusGained", "TermLeave" }, { callback = M.refresh })
+	vim.api.nvim_create_autocmd("WinResized", {
+		callback = function()
+			local win = graphWindows[vim.api.nvim_get_current_tabpage()]
+			if win and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_height(win) < graphHeight() then
+				vim.api.nvim_win_set_height(win, graphHeight())
+			end
+		end,
+	})
 end
 
 return M

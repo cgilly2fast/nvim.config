@@ -6,7 +6,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 
 - `ctrl+h/j/k/l` — move between tree, editor, terminal
 - `ctrl+e` — open/close file tree; `Space b` — show/hide it without moving the cursor (same key as the git view)
-- `ctrl+shift+j` — open terminal panel; again (inside it) hides it
+- `ctrl+shift+j` — open terminal panel; again (inside it) hides it. It stays at the bottom when you switch between editor and git view
 - Terminal ignoring your typing? Bottom-left says NORMAL instead of TERMINAL: press `i` to type again
 - `ctrl+shift+k` — terminal → editor, panel stays open
 - `ctrl+shift+n` / `ctrl+shift+w` / `ctrl+o` — new / close / next terminal (in terminal)
