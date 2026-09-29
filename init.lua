@@ -927,6 +927,18 @@ require("lazy").setup({
 				return "%2l:%-2v"
 			end
 
+			local branch = require("custom.branch")
+			---@diagnostic disable-next-line: duplicate-set-field
+			statusline.section_git = function()
+				local name = branch.name()
+				return name and "\u{e725} " .. name or ""
+			end
+			vim.o.laststatus = 3
+			vim.api.nvim_create_autocmd({ "DirChanged", "FocusGained", "BufEnter", "TermLeave" }, {
+				callback = branch.refresh,
+			})
+			branch.refresh()
+
 			-- ... and there is more!
 			--  Check out: https://github.com/echasnovski/mini.nvim
 		end,

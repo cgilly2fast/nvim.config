@@ -15,6 +15,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `alt+h/l` — move the nearest vertical divider left / right (works in terminal)
 - `alt+k/j` — move the nearest horizontal divider up / down; `alt+k` in terminal = taller
 - `ctrl+w =` — make all windows equal; or drag dividers with mouse
+- Bottom bar always shows the current branch
 
 ## Find things (cmd+p, cmd+shift+f)
 
