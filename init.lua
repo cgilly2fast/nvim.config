@@ -154,6 +154,24 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
+local editorWindowOptions = {}
+for _, name in ipairs({ "number", "relativenumber", "signcolumn", "cursorline", "wrap", "list", "breakindent", "foldcolumn", "statuscolumn", "winbar" }) do
+	editorWindowOptions[name] = vim.go[name]
+end
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	callback = function(args)
+		local win = vim.api.nvim_get_current_win()
+		local inDiffTab = package.loaded["codediff.ui.lifecycle"]
+			and require("codediff.ui.lifecycle").get_session(vim.api.nvim_get_current_tabpage())
+		if vim.bo[args.buf].buftype ~= "" or vim.api.nvim_win_get_config(win).relative ~= "" or inDiffTab then
+			return
+		end
+		for name, value in pairs(editorWindowOptions) do
+			vim.wo[win][0][name] = value
+		end
+	end,
+})
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
