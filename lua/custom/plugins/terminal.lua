@@ -27,12 +27,39 @@ local function show(index)
 	terminals[current]:open()
 end
 
+local function terminalName(term)
+	local title = vim.b[term.bufnr].term_title or ""
+	local command = title:match(" — (.+)$") or title
+	if command == "" or command:match("^[~/]") then
+		return "zsh"
+	end
+	return vim.fn.strcharlen(command) > 24 and vim.fn.strcharpart(command, 0, 23) .. "…" or command
+end
+
+function _G.TerminalTabs()
+	local tabs = {}
+	for index, term in ipairs(terminals) do
+		local highlight = index == current and "%#TabLineSel#" or "%#TabLine#"
+		table.insert(tabs, ("%%%d@v:lua.TerminalTabClick@%s %d %s %%X"):format(index, highlight, index, terminalName(term)))
+	end
+	return table.concat(tabs, "%#TabLineFill# ") .. "%#TabLineFill#"
+end
+
+function _G.TerminalTabClick(index)
+	if index ~= current then
+		show(index)
+	end
+end
+
 local function newTerminal()
 	local Terminal = require("toggleterm.terminal").Terminal
 	table.insert(
 		terminals,
 		Terminal:new({
 			direction = "horizontal",
+			on_open = function(term)
+				vim.wo[term.window].winbar = "%!v:lua.TerminalTabs()"
+			end,
 			on_exit = function(term)
 				vim.schedule(function()
 					local wasActive = term == activeTerminal()
