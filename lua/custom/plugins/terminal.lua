@@ -75,7 +75,11 @@ local function followToThisTab()
 	local win = vim.api.nvim_get_current_win()
 	openHere(term)
 	vim.api.nvim_set_current_win(win)
-	vim.cmd.stopinsert()
+	vim.schedule(function()
+		if vim.bo.buftype ~= "terminal" then
+			vim.cmd.stopinsert()
+		end
+	end)
 end
 
 local function terminalName(term)
