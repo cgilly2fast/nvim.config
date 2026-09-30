@@ -55,6 +55,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 ## File tree
 
 - `Enter` — open file / expand folder
+- `shift+c` — collapse the folder you're in and jump the cursor up to it; `z` collapses everything
 - `n` / `d` — new file / new folder (type path, `Enter`)
 - `r` — rename (updates imports)
 - `m` — move
