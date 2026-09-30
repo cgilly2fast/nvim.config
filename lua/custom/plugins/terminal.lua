@@ -5,6 +5,8 @@ end
 local current = 0
 local panelShown = false
 local focusPanel
+local list = {}
+local listNamespace = vim.api.nvim_create_namespace("terminal_list")
 
 local function activeTerminal()
 	return terminals[current]
@@ -22,8 +24,16 @@ local function forget(term)
 	end
 end
 
+local function closeList()
+	if list.win and vim.api.nvim_win_is_valid(list.win) then
+		vim.api.nvim_win_close(list.win, true)
+	end
+	list.win = nil
+end
+
 local function show(index)
 	local term = activeTerminal()
+	closeList()
 	if term and term:is_open() then
 		term:close()
 	end
@@ -46,6 +56,7 @@ local function closeInOtherTab(term)
 			end
 		end
 	end
+	closeList()
 	vim.api.nvim_win_close(term.window, true)
 end
 
@@ -73,22 +84,72 @@ local function terminalName(term)
 	if command == "" or command:match("^[~/]") then
 		return "zsh"
 	end
-	return vim.fn.strcharlen(command) > 24 and vim.fn.strcharpart(command, 0, 23) .. "…" or command
+	return vim.fn.strcharlen(command) > 20 and vim.fn.strcharpart(command, 0, 19) .. "…" or command
 end
 
-function _G.TerminalTabs()
-	local tabs = {}
-	for index, term in ipairs(terminals) do
-		local highlight = index == current and "%#TabLineSel#" or "%#TabLine#"
-		table.insert(tabs, ("%%%d@v:lua.TerminalTabClick@%s %d %s %%X"):format(index, highlight, index, terminalName(term)))
+local function renderList()
+	if not (list.buf and vim.api.nvim_buf_is_valid(list.buf)) then
+		return
 	end
-	return table.concat(tabs, "%#TabLineFill# ") .. "%#TabLineFill#"
+	local lines = {}
+	for _, term in ipairs(terminals) do
+		table.insert(lines, " \u{f489} " .. terminalName(term))
+	end
+	vim.bo[list.buf].modifiable = true
+	vim.api.nvim_buf_set_lines(list.buf, 0, -1, false, lines)
+	vim.bo[list.buf].modifiable = false
+	vim.api.nvim_buf_clear_namespace(list.buf, listNamespace, 0, -1)
+	if terminals[current] then
+		vim.api.nvim_buf_set_extmark(list.buf, listNamespace, current - 1, 0, { line_hl_group = "TerminalListCurrent" })
+	end
+	if list.win and vim.api.nvim_win_is_valid(list.win) and terminals[current] then
+		vim.api.nvim_win_set_cursor(list.win, { current, 0 })
+	end
 end
 
-function _G.TerminalTabClick(index)
-	if index ~= current then
+local function pickFromList()
+	local index = vim.fn.line(".")
+	if index ~= current and terminals[index] then
 		show(index)
+	else
+		focusPanel()
 	end
+end
+
+local function listBuffer()
+	if list.buf and vim.api.nvim_buf_is_valid(list.buf) then
+		return list.buf
+	end
+	list.buf = vim.api.nvim_create_buf(false, true)
+	vim.bo[list.buf].filetype = "terminallist"
+	vim.bo[list.buf].modifiable = false
+	for _, lhs in ipairs({ "<CR>", "<LeftRelease>" }) do
+		vim.keymap.set("n", lhs, pickFromList, { buffer = list.buf, desc = "Switch to this terminal" })
+	end
+	return list.buf
+end
+
+local function syncList()
+	closeList()
+	local term = activeTerminal()
+	if not (term and isOpenHere(term) and #terminals > 1) then
+		return
+	end
+	list.win = vim.api.nvim_open_win(listBuffer(), false, { split = "right", win = term.window, width = 24 })
+	list.owner = term.window
+	for name, value in pairs({
+		winfixwidth = true,
+		winfixbuf = true,
+		number = false,
+		relativenumber = false,
+		signcolumn = "no",
+		foldcolumn = "0",
+		wrap = false,
+		cursorline = false,
+	}) do
+		vim.wo[list.win][name] = value
+	end
+	renderList()
 end
 
 local function newTerminal()
@@ -98,8 +159,8 @@ local function newTerminal()
 		Terminal:new({
 			direction = "horizontal",
 			on_open = function(term)
-				vim.wo[term.window].winbar = "%!v:lua.TerminalTabs()"
 				vim.api.nvim_win_set_height(term.window, panelHeight())
+				syncList()
 			end,
 			on_exit = function(term)
 				vim.schedule(function()
@@ -110,6 +171,7 @@ local function newTerminal()
 					elseif not activeTerminal() then
 						panelShown = false
 					end
+					syncList()
 				end)
 			end,
 		})
@@ -133,6 +195,7 @@ end
 local function hidePanel()
 	local term = activeTerminal()
 	panelShown = false
+	closeList()
 	if term and term:is_open() then
 		term:close()
 	end
@@ -187,8 +250,12 @@ return {
 		persist_mode = false,
 	},
 	init = function()
+		vim.api.nvim_set_hl(0, "TerminalListCurrent", { link = "Visual", default = true })
 		vim.api.nvim_create_autocmd("TermRequest", {
 			callback = function(event)
+				if event.data.sequence:match("^\27%][02];") then
+					vim.schedule(renderList)
+				end
 				local payload = event.data.sequence:match("^\27%]52;[^;]*;(.+)$")
 				if payload and payload ~= "?" then
 					vim.fn.setreg("+", vim.base64.decode(payload))
@@ -216,6 +283,15 @@ return {
 					local term = activeTerminal()
 					if term and isOpenHere(term) then
 						vim.api.nvim_win_set_height(term.window, panelHeight())
+					end
+				end)
+			end,
+		})
+		vim.api.nvim_create_autocmd("WinClosed", {
+			callback = function()
+				vim.schedule(function()
+					if list.win and not vim.api.nvim_win_is_valid(list.owner) then
+						closeList()
 					end
 				end)
 			end,

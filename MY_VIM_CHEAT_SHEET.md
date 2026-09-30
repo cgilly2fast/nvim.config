@@ -10,7 +10,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - Terminal ignoring your typing? Bottom-left says NORMAL instead of TERMINAL: press `i` to type again
 - `ctrl+shift+k` — terminal → editor, panel stays open
 - `ctrl+shift+n` / `ctrl+shift+w` / `ctrl+o` — new / close / next terminal (in terminal)
-- Tabs across the top of the terminal panel list every open terminal and what it's running; click one to switch
+- With 2+ terminals, a list on the right of the panel shows each one and what it's running; click one (or `Enter` on it) to switch
 - `Esc Esc` — terminal into normal mode (scroll, copy output)
 - `ctrl+shift+g` — git changes + diffs; again to close
 - `alt+h/l` — move the nearest vertical divider left / right (works in terminal)
