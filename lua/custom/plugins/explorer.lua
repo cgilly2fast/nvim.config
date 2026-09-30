@@ -70,6 +70,14 @@ local function copyPaths()
 	vim.notify(#paths == 1 and "Copied " .. paths[1] or "Copied " .. #paths .. " paths")
 end
 
+local function revealInFinder()
+	local path = pathsUnderCursor()[1]
+	if not path then
+		return vim.notify("No file here to show in Finder", vim.log.levels.WARN)
+	end
+	vim.system({ "open", "-R", path }, { cwd = vim.fn.getcwd() })
+end
+
 return {
 	{
 		"nvim-neo-tree/neo-tree.nvim",
@@ -84,6 +92,7 @@ return {
 			{ "<C-e>", toggleExplorer, mode = { "n", "t" }, desc = "File explorer" },
 			{ "<leader>b", "<cmd>Neotree toggle show<cr>", desc = "Show / hide file explorer" },
 			{ "<M-D-c>", copyPaths, mode = { "n", "x" }, desc = "Copy path" },
+			{ "<M-D-r>", revealInFinder, desc = "Reveal in Finder" },
 		},
 		init = function()
 			vim.api.nvim_create_autocmd("VimEnter", {
