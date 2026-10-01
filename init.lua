@@ -117,6 +117,7 @@ vim.opt.clipboard = "unnamedplus"
 
 -- Enable break indent
 vim.opt.breakindent = true
+vim.opt.linebreak = true
 
 -- Save undo history
 vim.opt.undofile = true
@@ -155,7 +156,7 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 10
 
 local editorWindowOptions = {}
-for _, name in ipairs({ "number", "relativenumber", "signcolumn", "cursorline", "wrap", "list", "breakindent", "foldcolumn", "statuscolumn", "winbar" }) do
+for _, name in ipairs({ "number", "relativenumber", "signcolumn", "cursorline", "wrap", "linebreak", "list", "breakindent", "foldcolumn", "statuscolumn", "winbar" }) do
 	editorWindowOptions[name] = vim.go[name]
 end
 vim.api.nvim_create_autocmd("BufWinEnter", {
