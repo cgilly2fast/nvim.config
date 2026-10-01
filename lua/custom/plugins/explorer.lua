@@ -21,10 +21,6 @@ local function toggleExplorer()
 	require("neo-tree.command").execute({ action = "focus", reveal_file = revealable and file or nil })
 end
 
-local function projectPath(absolute)
-	return vim.fs.relpath(vim.fn.getcwd(), absolute) or absolute
-end
-
 local function selectedTreePaths(tree, nodePath)
 	local first, last = vim.fn.line("v"), vim.fn.line(".")
 	local paths, seen = {}, {}
@@ -33,7 +29,7 @@ local function selectedTreePaths(tree, nodePath)
 		local absolute = node and nodePath(node)
 		if absolute and not seen[absolute] then
 			seen[absolute] = true
-			table.insert(paths, projectPath(absolute))
+			table.insert(paths, absolute)
 		end
 	end
 	return paths
@@ -55,7 +51,7 @@ local function pathsUnderCursor()
 		end)
 	end
 	local file = bufferFile()
-	return file and { projectPath(file) } or {}
+	return file and { file } or {}
 end
 
 local function copyPaths()
