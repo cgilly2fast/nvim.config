@@ -40,6 +40,11 @@ local function show(index)
 	current = index
 	panelShown = true
 	terminals[current]:open()
+	vim.schedule(function()
+		if vim.bo.buftype == "terminal" then
+			vim.cmd.startinsert()
+		end
+	end)
 end
 
 local function isOpenHere(term)
@@ -111,6 +116,22 @@ local function renderList()
 	end
 end
 
+local function cycle(step)
+	if #terminals < 2 then
+		return
+	end
+	show((current - 1 + step) % #terminals + 1)
+end
+
+local function mapSwitchKeys(buf)
+	vim.keymap.set("n", "<C-o>", function()
+		cycle(1)
+	end, { buffer = buf, desc = "Next terminal" })
+	vim.keymap.set("n", "<C-S-o>", function()
+		cycle(-1)
+	end, { buffer = buf, desc = "Previous terminal" })
+end
+
 local function pickFromList()
 	local index = vim.fn.line(".")
 	if index ~= current and terminals[index] then
@@ -130,6 +151,7 @@ local function listBuffer()
 	for _, lhs in ipairs({ "<CR>", "<LeftRelease>" }) do
 		vim.keymap.set("n", lhs, pickFromList, { buffer = list.buf, desc = "Switch to this terminal" })
 	end
+	mapSwitchKeys(list.buf)
 	return list.buf
 end
 
@@ -162,6 +184,9 @@ local function newTerminal()
 		terminals,
 		Terminal:new({
 			direction = "horizontal",
+			on_create = function(term)
+				mapSwitchKeys(term.bufnr)
+			end,
 			on_open = function(term)
 				vim.api.nvim_win_set_height(term.window, panelHeight())
 				syncList()
@@ -212,12 +237,6 @@ local function killTerminal()
 	end
 end
 
-local function cycle(step)
-	if #terminals < 2 then
-		return
-	end
-	show((current - 1 + step) % #terminals + 1)
-end
 
 local function sendToTerminal(sequence)
 	return function()
@@ -241,6 +260,14 @@ return {
 			end,
 			mode = "t",
 			desc = "Next terminal",
+		},
+		{
+			"<C-S-o>",
+			function()
+				cycle(-1)
+			end,
+			mode = "t",
+			desc = "Previous terminal",
 		},
 		{ "<C-S-u>", sendToTerminal("\27[117;6u"), mode = "t" },
 		{ "<C-S-d>", sendToTerminal("\27[100;6u"), mode = "t" },
