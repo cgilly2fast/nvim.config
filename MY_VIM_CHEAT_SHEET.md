@@ -72,7 +72,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `ctrl+shift+g` — changes view: file list + full-file side-by-side diff; again to close. Opens even with nothing changed (graph, push)
 - `gd` in the diff (right pane) — opens the definition in the editor tab; `ctrl+o` walks back, all the way to the diff
 - `ctrl+shift+g` from the editor — back to the open diff
-- Review the whole branch like an MR: `git fetch` in the terminal, then `:CodeDiff origin/v2...HEAD` (only your commits) or `:CodeDiff origin/v2...` (commits plus uncommitted work); use whatever branch the MR targets in place of `v2`; `q` closes it
+- Review the whole branch like an MR: `git fetch` in the terminal, then `:CodeDiff origin/v2...` — the right side is your real files, so `gd` works (it also includes uncommitted work). `...HEAD` shows only commits but both sides come from git, so no `gd`. Use whatever branch the MR targets in place of `v2` (for a stacked branch, the branch below it); `q` closes it
 - Right-edge scrollbar marks every change in the file (green new, red old, yellow unresolved conflict), plus errors and search hits
 - `Enter` — open a file's diff (in the file list)
 - `Space b` — hide / show the file list (and the graph)

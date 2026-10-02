@@ -52,7 +52,10 @@ local function labelPanes()
 		end
 		if vim.bo[buf].buftype ~= "" and vim.api.nvim_buf_get_name(buf):match("^codediff:") then
 			vim.keymap.set("n", "gd", function()
-				vim.notify("This pane is a version from git, so it has no go-to-definition. Use gd in the working file's pane.")
+				if require("custom.git_graph").isWorkingTree(session) then
+					return vim.notify("This pane is a version from git, so it has no go-to-definition. Use gd in the working file's pane.")
+				end
+				vim.notify("Both sides of this diff come from git history, so neither has go-to-definition. To review a branch with gd working, leave HEAD off: :CodeDiff <base>...")
 			end, { buffer = buf, desc = "Go to definition (not available here)" })
 		end
 		if session.result_bufnr and buf ~= session.result_bufnr and vim.bo[buf].buftype ~= "" then
