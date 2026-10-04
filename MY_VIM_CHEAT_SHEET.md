@@ -63,7 +63,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `D` — delete
 - `c` / `x` / `p` — copy / cut / paste file
 - `H` — hide / show hidden files (shown by default)
-- `option+cmd+c` — copy the file's full path (`/Users/colby/...`); `V` + `j`/`k` first to copy several (also in the git view's file list and diff panes)
+- `option+cmd+c` — copy the file's path from your home folder (`~/code/...`); `V` + `j`/`k` first to copy several (also in the git view's file list and diff panes)
 - `option+cmd+r` — reveal the file (or tree selection) in Finder; works in the file tree, the git view's file list, and any file
 - `?` — all tree keys
 

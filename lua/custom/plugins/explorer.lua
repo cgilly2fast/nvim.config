@@ -62,8 +62,11 @@ local function copyPaths()
 	if #paths == 0 then
 		return vim.notify("No file path here", vim.log.levels.WARN)
 	end
-	vim.fn.setreg("+", table.concat(paths, "\n"))
-	vim.notify(#paths == 1 and "Copied " .. paths[1] or "Copied " .. #paths .. " paths")
+	local homeRelative = vim.tbl_map(function(path)
+		return vim.fn.fnamemodify(path, ":~")
+	end, paths)
+	vim.fn.setreg("+", table.concat(homeRelative, "\n"))
+	vim.notify(#paths == 1 and "Copied " .. homeRelative[1] or "Copied " .. #paths .. " paths")
 end
 
 local function revealInFinder()
