@@ -52,6 +52,7 @@ Space is leader. Tap it and wait: which-key lists every shortcut.
 - `Space e` — show error under cursor
 - `]d` / `[d` — next / previous error
 - `Space s d` — all errors in project
+- Sticky scroll: the class / function / block you're inside stays pinned at the top while you scroll
 
 ## File tree
 

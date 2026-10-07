@@ -23,6 +23,7 @@
   "nvim-lsp-file-operations": { "branch": "master", "commit": "0b939aff068c859b6f8cdbc3b3e676d038e6e15d" },
   "nvim-lspconfig": { "branch": "master", "commit": "046b1a797af1effe8e0474b9af9657a3761ec58a" },
   "nvim-treesitter": { "branch": "main", "commit": "f603a2f4da48728f80257fb5fbb90145fd1dc173" },
+  "nvim-treesitter-context": { "branch": "master", "commit": "f3061339b8eaf9fda873600bc425b8d2d8502533" },
   "nvim-web-devicons": { "branch": "master", "commit": "58447c1fca354bbf184425e4a8d01deecbd6f3c4" },
   "obsidian.nvim": { "branch": "main", "commit": "ae1f76a75c7ce36866e1d9342a8f6f5b9c2caf9b" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
