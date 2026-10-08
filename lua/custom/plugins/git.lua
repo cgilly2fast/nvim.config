@@ -386,6 +386,19 @@ return {
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
 		require("custom.git_graph").setup()
+		vim.api.nvim_create_autocmd("WinScrolled", {
+			callback = function()
+				for id in pairs(vim.v.event) do
+					local win = tonumber(id)
+					if win and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_config(win).relative ~= "" and vim.wo[win].scrollbind then
+						vim.wo[win].scrollbind = false
+						vim.api.nvim_win_call(win, function()
+							vim.fn.winrestview({ topline = 1 })
+						end)
+					end
+				end
+			end,
+		})
 		vim.keymap.set("n", "<ScrollWheelDown>", scrollWheel("<ScrollWheelDown>", "<C-e>"), { desc = "Scroll; diff panes stay in step" })
 		vim.keymap.set("n", "<ScrollWheelUp>", scrollWheel("<ScrollWheelUp>", "<C-y>"), { desc = "Scroll; diff panes stay in step" })
 		vim.keymap.set("n", "<C-o>", function()
