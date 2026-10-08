@@ -334,6 +334,28 @@ local function openSourceControl()
 	}, "")
 end
 
+local function scrollWheel(key, scrollKeys)
+	return function()
+		local mouse = vim.fn.getmousepos()
+		local current = vim.api.nvim_get_current_win()
+		local session = package.loaded["codediff.ui.lifecycle"]
+			and require("codediff.ui.lifecycle").get_session(vim.api.nvim_get_current_tabpage())
+		local overUnfocusedPane = session
+			and mouse.winid ~= current
+			and (mouse.winid == session.original_win or mouse.winid == session.modified_win)
+		if not overUnfocusedPane then
+			return vim.api.nvim_feedkeys(vim.keycode(key), "n", false)
+		end
+		vim.api.nvim_set_current_win(mouse.winid)
+		vim.cmd("normal! " .. (tonumber(vim.o.mousescroll:match("ver:(%d+)")) or 3) .. vim.keycode(scrollKeys))
+		vim.schedule(function()
+			if vim.api.nvim_win_is_valid(current) then
+				vim.api.nvim_set_current_win(current)
+			end
+		end)
+	end
+end
+
 local function toggleSourceControl()
 	local lifecycle = require("codediff.ui.lifecycle")
 	local tabpage = vim.api.nvim_get_current_tabpage()
@@ -364,6 +386,8 @@ return {
 	init = function()
 		vim.o.tabline = "%!v:lua.TabLabels()"
 		require("custom.git_graph").setup()
+		vim.keymap.set("n", "<ScrollWheelDown>", scrollWheel("<ScrollWheelDown>", "<C-e>"), { desc = "Scroll; diff panes stay in step" })
+		vim.keymap.set("n", "<ScrollWheelUp>", scrollWheel("<ScrollWheelUp>", "<C-y>"), { desc = "Scroll; diff panes stay in step" })
 		vim.keymap.set("n", "<C-o>", function()
 			require("custom.diff_definition").jumpBack()
 		end, { desc = "Jump back (returns to the diff after gd)" })
