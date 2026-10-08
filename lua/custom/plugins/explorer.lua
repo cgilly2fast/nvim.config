@@ -78,25 +78,35 @@ local function revealInFinder()
 end
 
 local function droppedPaths(text)
-	local paths, current, escaped = {}, {}, false
+	local paths, current, escaped, quote = {}, {}, false, nil
+	local function endPath()
+		if #current > 0 then
+			local path = table.concat(current)
+			table.insert(paths, path:match("^file://") and vim.uri_to_fname(path) or path)
+			current = {}
+		end
+	end
 	for char in text:gmatch(".") do
 		if escaped then
 			table.insert(current, char)
 			escaped = false
-		elseif char == "\\" then
+		elseif char == "\\" and quote ~= "'" then
 			escaped = true
-		elseif char:match("%s") then
-			if #current > 0 then
-				table.insert(paths, table.concat(current))
-				current = {}
+		elseif quote then
+			if char == quote then
+				quote = nil
+			else
+				table.insert(current, char)
 			end
+		elseif char == "'" or char == '"' then
+			quote = char
+		elseif char:match("%s") then
+			endPath()
 		else
 			table.insert(current, char)
 		end
 	end
-	if #current > 0 then
-		table.insert(paths, table.concat(current))
-	end
+	endPath()
 	return paths
 end
 
@@ -151,15 +161,25 @@ return {
 		},
 		init = function()
 			local paste = vim.paste
+			local pastedIntoTree = {}
 			vim.paste = function(lines, phase)
-				if vim.bo.filetype == "neo-tree" and phase == -1 then
-					local paths = droppedPaths(table.concat(lines, "\n"))
+				if vim.bo.filetype ~= "neo-tree" then
+					return paste(lines, phase)
+				end
+				if phase == -1 or phase == 1 then
+					pastedIntoTree = {}
+				end
+				table.insert(pastedIntoTree, table.concat(lines, "\n"))
+				if phase == -1 or phase == 3 then
+					local paths = droppedPaths(table.concat(pastedIntoTree))
+					pastedIntoTree = {}
 					if #paths > 0 and vim.iter(paths):all(isExistingFile) then
 						copyIntoTree(paths)
-						return true
+					else
+						vim.notify("Only files dragged in from Finder can be pasted into the file tree", vim.log.levels.WARN)
 					end
 				end
-				return paste(lines, phase)
+				return true
 			end
 			vim.api.nvim_create_autocmd("VimEnter", {
 				callback = function()
