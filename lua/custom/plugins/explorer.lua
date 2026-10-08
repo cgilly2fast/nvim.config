@@ -77,6 +77,62 @@ local function revealInFinder()
 	vim.system({ "open", "-R", path }, { cwd = vim.fn.getcwd() })
 end
 
+local function droppedPaths(text)
+	local paths, current, escaped = {}, {}, false
+	for char in text:gmatch(".") do
+		if escaped then
+			table.insert(current, char)
+			escaped = false
+		elseif char == "\\" then
+			escaped = true
+		elseif char:match("%s") then
+			if #current > 0 then
+				table.insert(paths, table.concat(current))
+				current = {}
+			end
+		else
+			table.insert(current, char)
+		end
+	end
+	if #current > 0 then
+		table.insert(paths, table.concat(current))
+	end
+	return paths
+end
+
+local function isExistingFile(path)
+	return path:sub(1, 1) == "/" and vim.uv.fs_stat(path) ~= nil
+end
+
+local function treeFolderUnderCursor()
+	local node = require("neo-tree.sources.manager").get_state_for_window().tree:get_node()
+	if not node then
+		return vim.fn.getcwd()
+	end
+	return node.type == "directory" and node.path or vim.fs.dirname(node.path)
+end
+
+local function copyIntoTree(paths)
+	local folder = treeFolderUnderCursor()
+	local copied = 0
+	for _, path in ipairs(paths) do
+		local target = vim.fs.joinpath(folder, vim.fs.basename(path))
+		if vim.uv.fs_stat(target) then
+			vim.notify(vim.fs.basename(path) .. " is already in that folder, so it was not copied", vim.log.levels.WARN)
+		elseif vim.system({ "cp", "-R", path, target }):wait().code == 0 then
+			copied = copied + 1
+		else
+			vim.notify("Could not copy " .. path, vim.log.levels.ERROR)
+		end
+	end
+	if copied > 0 then
+		local relative = vim.fs.relpath(vim.fn.getcwd(), folder)
+		local where = (relative == nil or relative == ".") and "the project root" or relative
+		vim.notify(("Copied %s into %s"):format(copied == 1 and vim.fs.basename(paths[1]) or copied .. " files", where))
+		require("neo-tree.sources.manager").refresh("filesystem")
+	end
+end
+
 return {
 	{
 		"nvim-neo-tree/neo-tree.nvim",
@@ -94,6 +150,17 @@ return {
 			{ "<M-D-r>", revealInFinder, desc = "Reveal in Finder" },
 		},
 		init = function()
+			local paste = vim.paste
+			vim.paste = function(lines, phase)
+				if vim.bo.filetype == "neo-tree" and phase == -1 then
+					local paths = droppedPaths(table.concat(lines, "\n"))
+					if #paths > 0 and vim.iter(paths):all(isExistingFile) then
+						copyIntoTree(paths)
+						return true
+					end
+				end
+				return paste(lines, phase)
+			end
 			vim.api.nvim_create_autocmd("VimEnter", {
 				callback = function()
 					local argc = vim.fn.argc()
