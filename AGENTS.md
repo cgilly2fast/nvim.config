@@ -4,14 +4,14 @@ A VS Code style Neovim for Ghostty: file tree, editor, a terminal panel that sta
 
 ## Workflow
 
-- While this config is on trial it runs as `NVIM_APPNAME=nvim-ide` (the `nvim` alias), from `~/.config/nvim-ide`. Make each change there, then copy it into this repo. Keep the two trees identical: `diff -rq ~/.config/nvim-ide ~/.config/nvim -x .git -x lazy-lock.json` prints nothing.
-- Commit every change, one commit per feature or fix, with a message that describes what the user now sees. Push the branch after each commit so regressions can be audited and bisected later. Ask before merging into `main` or force pushing.
+- This repo is the live config: `~/.config/nvim`, on branch `main`. Edit it in place.
+- Commit every change, one commit per feature or fix, with a message that describes what the user now sees. Push after each commit so regressions can be audited and bisected later. Ask before force pushing.
 - When a key or a behavior changes, update `MY_VIM_CHEAT_SHEET.md` in the same commit.
 - No code comments. Lint directives such as `---@diagnostic` are the only exception.
 
 ## Testing
 
-- Logic and layout: `NVIM_APPNAME=nvim-ide nvim --headless`, with a script that drives the config and prints the result.
+- Logic and layout: `nvim --headless`, with a script that drives the config and prints the result.
 - Anything involving modes or keys needs a real UI: run nvim in a pty with `--listen`, send keys with `nvim --server <sock> --remote-send`, and read state with `--remote-expr`. Headless mode reports modes unreliably.
 - Use scratch git repos for tests, never a real project.
 
